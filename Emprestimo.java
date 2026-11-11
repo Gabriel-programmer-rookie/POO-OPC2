@@ -6,11 +6,17 @@ public class Emprestimo {
     private final LocalDate dataEmprestimo;
     private final LocalDate dataDevolucaoPrevista;
 
+    // Construtor 1: Novos empréstimos (calcula data atual e +14 dias)
     public Emprestimo(Usuario usuario, ItemBiblioteca item) {
+        this(usuario, item, LocalDate.now(), LocalDate.now().plusDays(14));
+    }
+
+    // Construtor 2: Sobrecarga para carregar empréstimos existentes mantendo datas salvas
+    public Emprestimo(Usuario usuario, ItemBiblioteca item, LocalDate dataEmprestimo, LocalDate dataDevolucaoPrevista) {
         this.usuario = usuario;
         this.item = item;
-        this.dataEmprestimo = LocalDate.now();
-        this.dataDevolucaoPrevista = LocalDate.now().plusDays(14);
+        this.dataEmprestimo = dataEmprestimo;
+        this.dataDevolucaoPrevista = dataDevolucaoPrevista;
     }
 
     public Usuario getUsuario() { return usuario; }
