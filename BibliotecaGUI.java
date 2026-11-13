@@ -1,9 +1,16 @@
 import java.awt.*;
 import java.util.List;
 import javax.swing.*;
+import javax.swing.border.TitledBorder;
 
 public class BibliotecaGUI extends JFrame {
     private final BibliotecaManager manager;
+
+    // Paleta de cores baseada na imagem
+    private static final Color AZUL_MARINHO = new Color(10, 41, 99);
+    private static final Color AZUL_MEDIO = new Color(13, 110, 158);
+    private static final Color VERDE_LIMA = new Color(173, 222, 47);
+    private static final Color FUNDO_CLARO = new Color(245, 248, 252);
 
     private TabelaEncapsulada tblLivros;
     private TabelaEncapsulada tblRevistas;
@@ -18,8 +25,13 @@ public class BibliotecaGUI extends JFrame {
         setSize(950, 700);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLocationRelativeTo(null);
+        getContentPane().setBackground(Color.WHITE);
 
         JTabbedPane tabbedPane = new JTabbedPane();
+        tabbedPane.setBackground(Color.WHITE);
+        tabbedPane.setForeground(AZUL_MARINHO);
+        tabbedPane.setFont(tabbedPane.getFont().deriveFont(Font.BOLD));
+
         tabbedPane.addTab("Livros", criarPainelLivros());
         tabbedPane.addTab("Revistas", criarPainelRevistas());
         tabbedPane.addTab("DVDs", criarPainelDVDs());
@@ -30,30 +42,63 @@ public class BibliotecaGUI extends JFrame {
         atualizarTodasTabelas();
     }
 
+    private void estilizarBotao(JButton btn, Color fundo, Color texto) {
+        btn.setBackground(fundo);
+        btn.setForeground(texto);
+        btn.setOpaque(true);
+        btn.setFocusPainted(false);
+        btn.setFont(btn.getFont().deriveFont(Font.BOLD));
+        btn.setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 14));
+    }
+
+    private TitledBorder criarBordaTitulo(String titulo) {
+        TitledBorder border = BorderFactory.createTitledBorder(
+            BorderFactory.createLineBorder(AZUL_MEDIO, 1),
+            titulo
+        );
+        border.setTitleColor(AZUL_MARINHO);
+        border.setTitleFont(border.getTitleFont().deriveFont(Font.BOLD));
+        return border;
+    }
+
     // --- PAINEL LIVROS ---
     private JPanel criarPainelLivros() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBackground(Color.WHITE);
 
         JPanel pnlBusca = new JPanel(new FlowLayout(FlowLayout.LEFT));
+        pnlBusca.setBackground(FUNDO_CLARO);
         JTextField txtBuscaTitulo = new JTextField(12);
         JTextField txtBuscaAutor = new JTextField(12);
         JCheckBox chkDisp = new JCheckBox("Apenas Disponíveis");
+        chkDisp.setBackground(FUNDO_CLARO);
+        chkDisp.setForeground(AZUL_MARINHO);
         JButton btnBuscar = new JButton("Filtrar");
         JButton btnLimpar = new JButton("Mostrar Todos");
 
-        pnlBusca.add(new JLabel("Título:")); pnlBusca.add(txtBuscaTitulo);
-        pnlBusca.add(new JLabel("Autor:")); pnlBusca.add(txtBuscaAutor);
+        estilizarBotao(btnBuscar, AZUL_MEDIO, Color.WHITE);
+        estilizarBotao(btnLimpar, AZUL_MARINHO, Color.WHITE);
+
+        JLabel lblBuscaTit = new JLabel("Título:"); lblBuscaTit.setForeground(AZUL_MARINHO);
+        JLabel lblBuscaAut = new JLabel("Autor:"); lblBuscaAut.setForeground(AZUL_MARINHO);
+
+        pnlBusca.add(lblBuscaTit); pnlBusca.add(txtBuscaTitulo);
+        pnlBusca.add(lblBuscaAut); pnlBusca.add(txtBuscaAutor);
         pnlBusca.add(chkDisp);
         pnlBusca.add(btnBuscar); pnlBusca.add(btnLimpar);
         panel.add(pnlBusca, BorderLayout.NORTH);
 
         String[] colunas = {"ID", "Título", "Ano", "Autor", "Nº Páginas", "Status"};
         tblLivros = new TabelaEncapsulada(colunas);
-        panel.add(new JScrollPane(tblLivros), BorderLayout.CENTER);
+        JScrollPane scrollLivros = new JScrollPane(tblLivros);
+        scrollLivros.getViewport().setBackground(Color.WHITE);
+        panel.add(scrollLivros, BorderLayout.CENTER);
 
         JPanel pnlSul = new JPanel(new BorderLayout());
+        pnlSul.setBackground(FUNDO_CLARO);
         JPanel pnlCadastro = new JPanel(new GridLayout(3, 4, 5, 5));
-        pnlCadastro.setBorder(BorderFactory.createTitledBorder("Cadastrar Novo Livro"));
+        pnlCadastro.setBackground(FUNDO_CLARO);
+        pnlCadastro.setBorder(criarBordaTitulo("Cadastrar Novo Livro"));
 
         JTextField txtId = new JTextField();
         JTextField txtTitulo = new JTextField();
@@ -61,17 +106,27 @@ public class BibliotecaGUI extends JFrame {
         JTextField txtAutor = new JTextField();
         JTextField txtPaginas = new JTextField();
         JButton btnCadastrar = new JButton("Cadastrar Livro");
+        estilizarBotao(btnCadastrar, VERDE_LIMA, AZUL_MARINHO);
 
-        pnlCadastro.add(new JLabel("ID:")); pnlCadastro.add(txtId);
-        pnlCadastro.add(new JLabel("Título:")); pnlCadastro.add(txtTitulo);
-        pnlCadastro.add(new JLabel("Ano:")); pnlCadastro.add(txtAno);
-        pnlCadastro.add(new JLabel("Autor:")); pnlCadastro.add(txtAutor);
-        pnlCadastro.add(new JLabel("Nº Páginas:")); pnlCadastro.add(txtPaginas);
+        JLabel l1 = new JLabel("ID:"); l1.setForeground(AZUL_MARINHO);
+        JLabel l2 = new JLabel("Título:"); l2.setForeground(AZUL_MARINHO);
+        JLabel l3 = new JLabel("Ano:"); l3.setForeground(AZUL_MARINHO);
+        JLabel l4 = new JLabel("Autor:"); l4.setForeground(AZUL_MARINHO);
+        JLabel l5 = new JLabel("Nº Páginas:"); l5.setForeground(AZUL_MARINHO);
+
+        pnlCadastro.add(l1); pnlCadastro.add(txtId);
+        pnlCadastro.add(l2); pnlCadastro.add(txtTitulo);
+        pnlCadastro.add(l3); pnlCadastro.add(txtAno);
+        pnlCadastro.add(l4); pnlCadastro.add(txtAutor);
+        pnlCadastro.add(l5); pnlCadastro.add(txtPaginas);
         pnlCadastro.add(new JLabel("")); pnlCadastro.add(btnCadastrar);
 
         JPanel pnlAcoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        pnlAcoes.setBackground(FUNDO_CLARO);
         JButton btnEditar = new JButton("Editar Selecionado");
         JButton btnRemover = new JButton("Remover Selecionado");
+        estilizarBotao(btnEditar, AZUL_MEDIO, Color.WHITE);
+        estilizarBotao(btnRemover, AZUL_MARINHO, Color.WHITE);
         pnlAcoes.add(btnEditar); pnlAcoes.add(btnRemover);
 
         pnlSul.add(pnlCadastro, BorderLayout.CENTER);
@@ -197,31 +252,45 @@ public class BibliotecaGUI extends JFrame {
     // --- PAINEL REVISTAS ---
     private JPanel criarPainelRevistas() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBackground(Color.WHITE);
 
         String[] colunas = {"ID", "Título", "Ano", "Edição", "Status"};
         tblRevistas = new TabelaEncapsulada(colunas);
-        panel.add(new JScrollPane(tblRevistas), BorderLayout.CENTER);
+        JScrollPane scrollRevistas = new JScrollPane(tblRevistas);
+        scrollRevistas.getViewport().setBackground(Color.WHITE);
+        panel.add(scrollRevistas, BorderLayout.CENTER);
 
         JPanel pnlSul = new JPanel(new BorderLayout());
+        pnlSul.setBackground(FUNDO_CLARO);
         JPanel pnlCadastro = new JPanel(new GridLayout(3, 4, 5, 5));
-        pnlCadastro.setBorder(BorderFactory.createTitledBorder("Cadastrar Nova Revista"));
+        pnlCadastro.setBackground(FUNDO_CLARO);
+        pnlCadastro.setBorder(criarBordaTitulo("Cadastrar Nova Revista"));
 
         JTextField txtId = new JTextField();
         JTextField txtTitulo = new JTextField();
         JTextField txtAno = new JTextField();
         JTextField txtEdicao = new JTextField();
         JButton btnCadastrar = new JButton("Cadastrar Revista");
+        estilizarBotao(btnCadastrar, VERDE_LIMA, AZUL_MARINHO);
 
-        pnlCadastro.add(new JLabel("ID:")); pnlCadastro.add(txtId);
-        pnlCadastro.add(new JLabel("Título:")); pnlCadastro.add(txtTitulo);
-        pnlCadastro.add(new JLabel("Ano:")); pnlCadastro.add(txtAno);
-        pnlCadastro.add(new JLabel("Edição:")); pnlCadastro.add(txtEdicao);
+        JLabel l1 = new JLabel("ID:"); l1.setForeground(AZUL_MARINHO);
+        JLabel l2 = new JLabel("Título:"); l2.setForeground(AZUL_MARINHO);
+        JLabel l3 = new JLabel("Ano:"); l3.setForeground(AZUL_MARINHO);
+        JLabel l4 = new JLabel("Edição:"); l4.setForeground(AZUL_MARINHO);
+
+        pnlCadastro.add(l1); pnlCadastro.add(txtId);
+        pnlCadastro.add(l2); pnlCadastro.add(txtTitulo);
+        pnlCadastro.add(l3); pnlCadastro.add(txtAno);
+        pnlCadastro.add(l4); pnlCadastro.add(txtEdicao);
         pnlCadastro.add(new JLabel("")); pnlCadastro.add(new JLabel(""));
         pnlCadastro.add(new JLabel("")); pnlCadastro.add(btnCadastrar);
 
         JPanel pnlAcoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        pnlAcoes.setBackground(FUNDO_CLARO);
         JButton btnEditar = new JButton("Editar Selecionada");
         JButton btnRemover = new JButton("Remover Selecionada");
+        estilizarBotao(btnEditar, AZUL_MEDIO, Color.WHITE);
+        estilizarBotao(btnRemover, AZUL_MARINHO, Color.WHITE);
         pnlAcoes.add(btnEditar); pnlAcoes.add(btnRemover);
 
         pnlSul.add(pnlCadastro, BorderLayout.CENTER);
@@ -317,31 +386,45 @@ public class BibliotecaGUI extends JFrame {
     // --- PAINEL DVDS ---
     private JPanel criarPainelDVDs() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBackground(Color.WHITE);
 
         String[] colunas = {"ID", "Título", "Ano", "Duração (min)", "Status"};
         tblDVDs = new TabelaEncapsulada(colunas);
-        panel.add(new JScrollPane(tblDVDs), BorderLayout.CENTER);
+        JScrollPane scrollDVDs = new JScrollPane(tblDVDs);
+        scrollDVDs.getViewport().setBackground(Color.WHITE);
+        panel.add(scrollDVDs, BorderLayout.CENTER);
 
         JPanel pnlSul = new JPanel(new BorderLayout());
+        pnlSul.setBackground(FUNDO_CLARO);
         JPanel pnlCadastro = new JPanel(new GridLayout(3, 4, 5, 5));
-        pnlCadastro.setBorder(BorderFactory.createTitledBorder("Cadastrar Novo DVD"));
+        pnlCadastro.setBackground(FUNDO_CLARO);
+        pnlCadastro.setBorder(criarBordaTitulo("Cadastrar Novo DVD"));
 
         JTextField txtId = new JTextField();
         JTextField txtTitulo = new JTextField();
         JTextField txtAno = new JTextField();
         JTextField txtDuracao = new JTextField();
         JButton btnCadastrar = new JButton("Cadastrar DVD");
+        estilizarBotao(btnCadastrar, VERDE_LIMA, AZUL_MARINHO);
 
-        pnlCadastro.add(new JLabel("ID:")); pnlCadastro.add(txtId);
-        pnlCadastro.add(new JLabel("Título:")); pnlCadastro.add(txtTitulo);
-        pnlCadastro.add(new JLabel("Ano:")); pnlCadastro.add(txtAno);
-        pnlCadastro.add(new JLabel("Duração:")); pnlCadastro.add(txtDuracao);
+        JLabel l1 = new JLabel("ID:"); l1.setForeground(AZUL_MARINHO);
+        JLabel l2 = new JLabel("Título:"); l2.setForeground(AZUL_MARINHO);
+        JLabel l3 = new JLabel("Ano:"); l3.setForeground(AZUL_MARINHO);
+        JLabel l4 = new JLabel("Duração:"); l4.setForeground(AZUL_MARINHO);
+
+        pnlCadastro.add(l1); pnlCadastro.add(txtId);
+        pnlCadastro.add(l2); pnlCadastro.add(txtTitulo);
+        pnlCadastro.add(l3); pnlCadastro.add(txtAno);
+        pnlCadastro.add(l4); pnlCadastro.add(txtDuracao);
         pnlCadastro.add(new JLabel("")); pnlCadastro.add(new JLabel(""));
         pnlCadastro.add(new JLabel("")); pnlCadastro.add(btnCadastrar);
 
         JPanel pnlAcoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        pnlAcoes.setBackground(FUNDO_CLARO);
         JButton btnEditar = new JButton("Editar Selecionado");
         JButton btnRemover = new JButton("Remover Selecionado");
+        estilizarBotao(btnEditar, AZUL_MEDIO, Color.WHITE);
+        estilizarBotao(btnRemover, AZUL_MARINHO, Color.WHITE);
         pnlAcoes.add(btnEditar); pnlAcoes.add(btnRemover);
 
         pnlSul.add(pnlCadastro, BorderLayout.CENTER);
@@ -437,28 +520,43 @@ public class BibliotecaGUI extends JFrame {
     // --- PAINEL USUÁRIOS ---
     private JPanel criarPainelUsuarios() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBackground(Color.WHITE);
 
         String[] colunas = {"ID", "Nome", "Tipo Usuário", "Empréstimos"};
         tblUsuarios = new TabelaEncapsulada(colunas);
-        panel.add(new JScrollPane(tblUsuarios), BorderLayout.CENTER);
+        JScrollPane scrollUsuarios = new JScrollPane(tblUsuarios);
+        scrollUsuarios.getViewport().setBackground(Color.WHITE);
+        panel.add(scrollUsuarios, BorderLayout.CENTER);
 
         JPanel pnlSul = new JPanel(new BorderLayout());
+        pnlSul.setBackground(FUNDO_CLARO);
         JPanel pnlCadastro = new JPanel(new GridLayout(2, 4, 5, 5));
-        pnlCadastro.setBorder(BorderFactory.createTitledBorder("Cadastrar Usuário"));
+        pnlCadastro.setBackground(FUNDO_CLARO);
+        pnlCadastro.setBorder(criarBordaTitulo("Cadastrar Usuário"));
 
         JComboBox<String> cbTipo = new JComboBox<>(new String[]{"Aluno", "Professor", "Funcionario"});
+        cbTipo.setBackground(Color.WHITE);
+        cbTipo.setForeground(AZUL_MARINHO);
         JTextField txtId = new JTextField();
         JTextField txtNome = new JTextField();
         JButton btnCadastrar = new JButton("Cadastrar Usuário");
+        estilizarBotao(btnCadastrar, VERDE_LIMA, AZUL_MARINHO);
 
-        pnlCadastro.add(new JLabel("Tipo:")); pnlCadastro.add(cbTipo);
-        pnlCadastro.add(new JLabel("ID:")); pnlCadastro.add(txtId);
-        pnlCadastro.add(new JLabel("Nome:")); pnlCadastro.add(txtNome);
+        JLabel l1 = new JLabel("Tipo:"); l1.setForeground(AZUL_MARINHO);
+        JLabel l2 = new JLabel("ID:"); l2.setForeground(AZUL_MARINHO);
+        JLabel l3 = new JLabel("Nome:"); l3.setForeground(AZUL_MARINHO);
+
+        pnlCadastro.add(l1); pnlCadastro.add(cbTipo);
+        pnlCadastro.add(l2); pnlCadastro.add(txtId);
+        pnlCadastro.add(l3); pnlCadastro.add(txtNome);
         pnlCadastro.add(new JLabel("")); pnlCadastro.add(btnCadastrar);
 
         JPanel pnlAcoes = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        pnlAcoes.setBackground(FUNDO_CLARO);
         JButton btnEditar = new JButton("Editar Nome");
         JButton btnRemover = new JButton("Remover Usuário");
+        estilizarBotao(btnEditar, AZUL_MEDIO, Color.WHITE);
+        estilizarBotao(btnRemover, AZUL_MARINHO, Color.WHITE);
         pnlAcoes.add(btnEditar); pnlAcoes.add(btnRemover);
 
         pnlSul.add(pnlCadastro, BorderLayout.CENTER);
@@ -541,21 +639,31 @@ public class BibliotecaGUI extends JFrame {
     // --- PAINEL EMPRÉSTIMOS ---
     private JPanel criarPainelEmprestimos() {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
+        panel.setBackground(Color.WHITE);
 
         String[] colunas = {"Usuário", "Item", "Data Empréstimo", "Devolução Prevista"};
         tblEmprestimos = new TabelaEncapsulada(colunas);
-        panel.add(new JScrollPane(tblEmprestimos), BorderLayout.CENTER);
+        JScrollPane scrollEmp = new JScrollPane(tblEmprestimos);
+        scrollEmp.getViewport().setBackground(Color.WHITE);
+        panel.add(scrollEmp, BorderLayout.CENTER);
 
         JPanel pnlAcoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
-        pnlAcoes.setBorder(BorderFactory.createTitledBorder("Operações"));
+        pnlAcoes.setBackground(FUNDO_CLARO);
+        pnlAcoes.setBorder(criarBordaTitulo("Operações"));
 
         JTextField txtIdUsuario = new JTextField(5);
         JTextField txtIdItem = new JTextField(5);
         JButton btnEmprestar = new JButton("Realizar Empréstimo");
         JButton btnDevolver = new JButton("Realizar Devolução");
 
-        pnlAcoes.add(new JLabel("ID Usuário:")); pnlAcoes.add(txtIdUsuario);
-        pnlAcoes.add(new JLabel("ID Item:")); pnlAcoes.add(txtIdItem);
+        estilizarBotao(btnEmprestar, VERDE_LIMA, AZUL_MARINHO);
+        estilizarBotao(btnDevolver, AZUL_MEDIO, Color.WHITE);
+
+        JLabel l1 = new JLabel("ID Usuário:"); l1.setForeground(AZUL_MARINHO);
+        JLabel l2 = new JLabel("ID Item:"); l2.setForeground(AZUL_MARINHO);
+
+        pnlAcoes.add(l1); pnlAcoes.add(txtIdUsuario);
+        pnlAcoes.add(l2); pnlAcoes.add(txtIdItem);
         pnlAcoes.add(btnEmprestar); pnlAcoes.add(btnDevolver);
 
         panel.add(pnlAcoes, BorderLayout.SOUTH);
