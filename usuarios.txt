@@ -1,1 +1,1 @@
-ALUNO;123;gab;0
+ALUNO;123;gab;1

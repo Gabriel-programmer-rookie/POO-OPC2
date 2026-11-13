@@ -1,13 +1,15 @@
 import java.awt.*;
 import java.util.List;
 import javax.swing.*;
-import javax.swing.table.DefaultTableModel;
 
 public class BibliotecaGUI extends JFrame {
     private final BibliotecaManager manager;
 
-    private JTable tblLivros, tblRevistas, tblDVDs, tblUsuarios, tblEmprestimos;
-    private DefaultTableModel modelLivros, modelRevistas, modelDVDs, modelUsuarios, modelEmprestimos;
+    private TabelaEncapsulada tblLivros;
+    private TabelaEncapsulada tblRevistas;
+    private TabelaEncapsulada tblDVDs;
+    private TabelaEncapsulada tblUsuarios;
+    private TabelaEncapsulada tblEmprestimos;
 
     public BibliotecaGUI() {
         manager = new BibliotecaManager();
@@ -46,8 +48,7 @@ public class BibliotecaGUI extends JFrame {
         panel.add(pnlBusca, BorderLayout.NORTH);
 
         String[] colunas = {"ID", "Título", "Ano", "Autor", "Nº Páginas", "Status"};
-        modelLivros = new DefaultTableModel(colunas, 0);
-        tblLivros = new JTable(modelLivros);
+        tblLivros = new TabelaEncapsulada(colunas);
         panel.add(new JScrollPane(tblLivros), BorderLayout.CENTER);
 
         JPanel pnlSul = new JPanel(new BorderLayout());
@@ -84,54 +85,35 @@ public class BibliotecaGUI extends JFrame {
             String autStr = txtAutor.getText().trim();
             String pagStr = txtPaginas.getText().trim();
 
-            // Validações por caixa
-            if (idStr.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "O campo ID é obrigatório!", "Aviso", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            if (!idStr.matches("\\d+")) {
+            if (idStr.isEmpty() || !idStr.matches("\\d+")) {
                 JOptionPane.showMessageDialog(this, "Coloque apenas números no ID!", "Erro no ID", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-
             if (titStr.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "O campo Título é obrigatório!", "Aviso", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-
-            if (anoStr.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "O campo Ano é obrigatório!", "Aviso", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            if (!anoStr.matches("\\d+")) {
+            if (anoStr.isEmpty() || !anoStr.matches("\\d+")) {
                 JOptionPane.showMessageDialog(this, "Coloque apenas números no Ano!", "Erro no Ano", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-
-            if (autStr.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "O campo Autor é obrigatório!", "Aviso", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            if (!autStr.matches("^[\\p{L}\\s]+$")) {
+            if (autStr.isEmpty() || !autStr.matches("^[\\p{L}\\s]+$")) {
                 JOptionPane.showMessageDialog(this, "Não pode conter números, apenas letras no Autor!", "Erro no Autor", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-
-            if (pagStr.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "O campo Nº Páginas é obrigatório!", "Aviso", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            if (!pagStr.matches("\\d+")) {
+            if (pagStr.isEmpty() || !pagStr.matches("\\d+")) {
                 JOptionPane.showMessageDialog(this, "Coloque apenas números no Número de Páginas!", "Erro no Nº Páginas", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
             try {
-                int id = Integer.parseInt(idStr);
-                int ano = Integer.parseInt(anoStr);
-                int pag = Integer.parseInt(pagStr);
-
-                manager.adicionarItem(new Livro(id, titStr, ano, autStr, pag));
+                manager.adicionarItem(new Livro(
+                    Integer.parseInt(idStr),
+                    titStr,
+                    Integer.parseInt(anoStr),
+                    autStr,
+                    Integer.parseInt(pagStr)
+                ));
                 JOptionPane.showMessageDialog(this, "Livro cadastrado com sucesso!");
                 atualizarTabelaLivros();
                 txtId.setText(""); txtTitulo.setText(""); txtAno.setText(""); txtAutor.setText(""); txtPaginas.setText("");
@@ -142,31 +124,34 @@ public class BibliotecaGUI extends JFrame {
 
         btnEditar.addActionListener(e -> {
             int row = tblLivros.getSelectedRow();
-            if (row == -1) { JOptionPane.showMessageDialog(this, "Selecione um livro na tabela."); return; }
-            int id = (int) modelLivros.getValueAt(row, 0);
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Selecione um livro na tabela.");
+                return;
+            }
+            int id = (int) tblLivros.obterValor(row, 0);
             try {
-                String nTit = JOptionPane.showInputDialog(this, "Novo Título:", modelLivros.getValueAt(row, 1));
+                String nTit = JOptionPane.showInputDialog(this, "ID " + id + " (Imutável) - Novo Título:", tblLivros.obterValor(row, 1));
                 if (nTit == null || nTit.isBlank()) return;
-                
-                String anoStr = JOptionPane.showInputDialog(this, "Novo Ano:", modelLivros.getValueAt(row, 2));
+
+                String anoStr = JOptionPane.showInputDialog(this, "Novo Ano:", tblLivros.obterValor(row, 2));
                 if (anoStr == null || !anoStr.matches("\\d+")) {
                     JOptionPane.showMessageDialog(this, "Coloque apenas números no Ano!");
                     return;
                 }
 
-                String nAut = JOptionPane.showInputDialog(this, "Novo Autor:", modelLivros.getValueAt(row, 3));
+                String nAut = JOptionPane.showInputDialog(this, "Novo Autor:", tblLivros.obterValor(row, 3));
                 if (nAut == null || !nAut.matches("^[\\p{L}\\s]+$")) {
                     JOptionPane.showMessageDialog(this, "Não pode conter números, apenas letras no Autor!");
                     return;
                 }
 
-                String pagStr = JOptionPane.showInputDialog(this, "Novas Páginas:", modelLivros.getValueAt(row, 4));
+                String pagStr = JOptionPane.showInputDialog(this, "Novas Páginas:", tblLivros.obterValor(row, 4));
                 if (pagStr == null || !pagStr.matches("\\d+")) {
                     JOptionPane.showMessageDialog(this, "Coloque apenas números no Número de Páginas!");
                     return;
                 }
 
-                manager.editarLivro(id, nTit, Integer.parseInt(anoStr), nAut, Integer.parseInt(pagStr));
+                manager.editarLivro(id, nTit.trim(), Integer.parseInt(anoStr), nAut.trim(), Integer.parseInt(pagStr));
                 atualizarTabelaLivros();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Erro ao editar: " + ex.getMessage());
@@ -175,8 +160,11 @@ public class BibliotecaGUI extends JFrame {
 
         btnRemover.addActionListener(e -> {
             int row = tblLivros.getSelectedRow();
-            if (row == -1) { JOptionPane.showMessageDialog(this, "Selecione um livro na tabela."); return; }
-            int id = (int) modelLivros.getValueAt(row, 0);
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Selecione um livro na tabela.");
+                return;
+            }
+            int id = (int) tblLivros.obterValor(row, 0);
             try {
                 manager.removerItem(id);
                 atualizarTabelaLivros();
@@ -211,8 +199,7 @@ public class BibliotecaGUI extends JFrame {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
 
         String[] colunas = {"ID", "Título", "Ano", "Edição", "Status"};
-        modelRevistas = new DefaultTableModel(colunas, 0);
-        tblRevistas = new JTable(modelRevistas);
+        tblRevistas = new TabelaEncapsulada(colunas);
         panel.add(new JScrollPane(tblRevistas), BorderLayout.CENTER);
 
         JPanel pnlSul = new JPanel(new BorderLayout());
@@ -247,44 +234,30 @@ public class BibliotecaGUI extends JFrame {
             String anoStr = txtAno.getText().trim();
             String edStr = txtEdicao.getText().trim();
 
-            if (idStr.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "O campo ID é obrigatório!", "Aviso", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            if (!idStr.matches("\\d+")) {
+            if (idStr.isEmpty() || !idStr.matches("\\d+")) {
                 JOptionPane.showMessageDialog(this, "Coloque apenas números no ID!", "Erro no ID", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-
             if (titStr.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "O campo Título é obrigatório!", "Aviso", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-
-            if (anoStr.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "O campo Ano é obrigatório!", "Aviso", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            if (!anoStr.matches("\\d+")) {
+            if (anoStr.isEmpty() || !anoStr.matches("\\d+")) {
                 JOptionPane.showMessageDialog(this, "Coloque apenas números no Ano!", "Erro no Ano", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-
-            if (edStr.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "O campo Edição é obrigatório!", "Aviso", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            if (!edStr.matches("\\d+")) {
+            if (edStr.isEmpty() || !edStr.matches("\\d+")) {
                 JOptionPane.showMessageDialog(this, "Coloque apenas números na Edição!", "Erro na Edição", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
             try {
-                int id = Integer.parseInt(idStr);
-                int ano = Integer.parseInt(anoStr);
-                int ed = Integer.parseInt(edStr);
-
-                manager.adicionarItem(new Revista(id, titStr, ano, ed));
+                manager.adicionarItem(new Revista(
+                    Integer.parseInt(idStr),
+                    titStr,
+                    Integer.parseInt(anoStr),
+                    Integer.parseInt(edStr)
+                ));
                 JOptionPane.showMessageDialog(this, "Revista cadastrada com sucesso!");
                 atualizarTabelaRevistas();
                 txtId.setText(""); txtTitulo.setText(""); txtAno.setText(""); txtEdicao.setText("");
@@ -295,25 +268,28 @@ public class BibliotecaGUI extends JFrame {
 
         btnEditar.addActionListener(e -> {
             int row = tblRevistas.getSelectedRow();
-            if (row == -1) { JOptionPane.showMessageDialog(this, "Selecione uma revista."); return; }
-            int id = (int) modelRevistas.getValueAt(row, 0);
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Selecione uma revista.");
+                return;
+            }
+            int id = (int) tblRevistas.obterValor(row, 0);
             try {
-                String nTit = JOptionPane.showInputDialog(this, "Novo Título:", modelRevistas.getValueAt(row, 1));
+                String nTit = JOptionPane.showInputDialog(this, "ID " + id + " (Imutável) - Novo Título:", tblRevistas.obterValor(row, 1));
                 if (nTit == null || nTit.isBlank()) return;
 
-                String anoStr = JOptionPane.showInputDialog(this, "Novo Ano:", modelRevistas.getValueAt(row, 2));
+                String anoStr = JOptionPane.showInputDialog(this, "Novo Ano:", tblRevistas.obterValor(row, 2));
                 if (anoStr == null || !anoStr.matches("\\d+")) {
                     JOptionPane.showMessageDialog(this, "Coloque apenas números no Ano!");
                     return;
                 }
 
-                String edStr = JOptionPane.showInputDialog(this, "Nova Edição:", modelRevistas.getValueAt(row, 3));
+                String edStr = JOptionPane.showInputDialog(this, "Nova Edição:", tblRevistas.obterValor(row, 3));
                 if (edStr == null || !edStr.matches("\\d+")) {
                     JOptionPane.showMessageDialog(this, "Coloque apenas números na Edição!");
                     return;
                 }
 
-                manager.editarRevista(id, nTit, Integer.parseInt(anoStr), Integer.parseInt(edStr));
+                manager.editarRevista(id, nTit.trim(), Integer.parseInt(anoStr), Integer.parseInt(edStr));
                 atualizarTabelaRevistas();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Erro ao editar: " + ex.getMessage());
@@ -322,8 +298,11 @@ public class BibliotecaGUI extends JFrame {
 
         btnRemover.addActionListener(e -> {
             int row = tblRevistas.getSelectedRow();
-            if (row == -1) { JOptionPane.showMessageDialog(this, "Selecione uma revista."); return; }
-            int id = (int) modelRevistas.getValueAt(row, 0);
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Selecione uma revista.");
+                return;
+            }
+            int id = (int) tblRevistas.obterValor(row, 0);
             try {
                 manager.removerItem(id);
                 atualizarTabelaRevistas();
@@ -340,8 +319,7 @@ public class BibliotecaGUI extends JFrame {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
 
         String[] colunas = {"ID", "Título", "Ano", "Duração (min)", "Status"};
-        modelDVDs = new DefaultTableModel(colunas, 0);
-        tblDVDs = new JTable(modelDVDs);
+        tblDVDs = new TabelaEncapsulada(colunas);
         panel.add(new JScrollPane(tblDVDs), BorderLayout.CENTER);
 
         JPanel pnlSul = new JPanel(new BorderLayout());
@@ -376,44 +354,30 @@ public class BibliotecaGUI extends JFrame {
             String anoStr = txtAno.getText().trim();
             String durStr = txtDuracao.getText().trim();
 
-            if (idStr.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "O campo ID é obrigatório!", "Aviso", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            if (!idStr.matches("\\d+")) {
+            if (idStr.isEmpty() || !idStr.matches("\\d+")) {
                 JOptionPane.showMessageDialog(this, "Coloque apenas números no ID!", "Erro no ID", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-
             if (titStr.isEmpty()) {
                 JOptionPane.showMessageDialog(this, "O campo Título é obrigatório!", "Aviso", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-
-            if (anoStr.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "O campo Ano é obrigatório!", "Aviso", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            if (!anoStr.matches("\\d+")) {
+            if (anoStr.isEmpty() || !anoStr.matches("\\d+")) {
                 JOptionPane.showMessageDialog(this, "Coloque apenas números no Ano!", "Erro no Ano", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-
-            if (durStr.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "O campo Duração é obrigatório!", "Aviso", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            if (!durStr.matches("\\d+")) {
+            if (durStr.isEmpty() || !durStr.matches("\\d+")) {
                 JOptionPane.showMessageDialog(this, "Coloque apenas números na Duração!", "Erro na Duração", JOptionPane.WARNING_MESSAGE);
                 return;
             }
 
             try {
-                int id = Integer.parseInt(idStr);
-                int ano = Integer.parseInt(anoStr);
-                int dur = Integer.parseInt(durStr);
-
-                manager.adicionarItem(new DVD(id, titStr, ano, dur));
+                manager.adicionarItem(new DVD(
+                    Integer.parseInt(idStr),
+                    titStr,
+                    Integer.parseInt(anoStr),
+                    Integer.parseInt(durStr)
+                ));
                 JOptionPane.showMessageDialog(this, "DVD cadastrado com sucesso!");
                 atualizarTabelaDVDs();
                 txtId.setText(""); txtTitulo.setText(""); txtAno.setText(""); txtDuracao.setText("");
@@ -424,25 +388,28 @@ public class BibliotecaGUI extends JFrame {
 
         btnEditar.addActionListener(e -> {
             int row = tblDVDs.getSelectedRow();
-            if (row == -1) { JOptionPane.showMessageDialog(this, "Selecione um DVD."); return; }
-            int id = (int) modelDVDs.getValueAt(row, 0);
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Selecione um DVD.");
+                return;
+            }
+            int id = (int) tblDVDs.obterValor(row, 0);
             try {
-                String nTit = JOptionPane.showInputDialog(this, "Novo Título:", modelDVDs.getValueAt(row, 1));
+                String nTit = JOptionPane.showInputDialog(this, "ID " + id + " (Imutável) - Novo Título:", tblDVDs.obterValor(row, 1));
                 if (nTit == null || nTit.isBlank()) return;
 
-                String anoStr = JOptionPane.showInputDialog(this, "Novo Ano:", modelDVDs.getValueAt(row, 2));
+                String anoStr = JOptionPane.showInputDialog(this, "Novo Ano:", tblDVDs.obterValor(row, 2));
                 if (anoStr == null || !anoStr.matches("\\d+")) {
                     JOptionPane.showMessageDialog(this, "Coloque apenas números no Ano!");
                     return;
                 }
 
-                String durStr = JOptionPane.showInputDialog(this, "Nova Duração (min):", modelDVDs.getValueAt(row, 3));
+                String durStr = JOptionPane.showInputDialog(this, "Nova Duração (min):", tblDVDs.obterValor(row, 3));
                 if (durStr == null || !durStr.matches("\\d+")) {
                     JOptionPane.showMessageDialog(this, "Coloque apenas números na Duração!");
                     return;
                 }
 
-                manager.editarDVD(id, nTit, Integer.parseInt(anoStr), Integer.parseInt(durStr));
+                manager.editarDVD(id, nTit.trim(), Integer.parseInt(anoStr), Integer.parseInt(durStr));
                 atualizarTabelaDVDs();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Erro ao editar: " + ex.getMessage());
@@ -451,8 +418,11 @@ public class BibliotecaGUI extends JFrame {
 
         btnRemover.addActionListener(e -> {
             int row = tblDVDs.getSelectedRow();
-            if (row == -1) { JOptionPane.showMessageDialog(this, "Selecione um DVD."); return; }
-            int id = (int) modelDVDs.getValueAt(row, 0);
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Selecione um DVD.");
+                return;
+            }
+            int id = (int) tblDVDs.obterValor(row, 0);
             try {
                 manager.removerItem(id);
                 atualizarTabelaDVDs();
@@ -469,8 +439,7 @@ public class BibliotecaGUI extends JFrame {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
 
         String[] colunas = {"ID", "Nome", "Tipo Usuário", "Empréstimos"};
-        modelUsuarios = new DefaultTableModel(colunas, 0);
-        tblUsuarios = new JTable(modelUsuarios);
+        tblUsuarios = new TabelaEncapsulada(colunas);
         panel.add(new JScrollPane(tblUsuarios), BorderLayout.CENTER);
 
         JPanel pnlSul = new JPanel(new BorderLayout());
@@ -500,20 +469,11 @@ public class BibliotecaGUI extends JFrame {
             String idStr = txtId.getText().trim();
             String nomeStr = txtNome.getText().trim();
 
-            if (idStr.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "O campo ID é obrigatório!", "Aviso", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            if (!idStr.matches("\\d+")) {
+            if (idStr.isEmpty() || !idStr.matches("\\d+")) {
                 JOptionPane.showMessageDialog(this, "Coloque apenas números no ID!", "Erro no ID", JOptionPane.WARNING_MESSAGE);
                 return;
             }
-
-            if (nomeStr.isEmpty()) {
-                JOptionPane.showMessageDialog(this, "O campo Nome é obrigatório!", "Aviso", JOptionPane.WARNING_MESSAGE);
-                return;
-            }
-            if (!nomeStr.matches("^[\\p{L}\\s]+$")) {
+            if (nomeStr.isEmpty() || !nomeStr.matches("^[\\p{L}\\s]+$")) {
                 JOptionPane.showMessageDialog(this, "Não pode conter números, apenas letras no Nome!", "Erro no Nome", JOptionPane.WARNING_MESSAGE);
                 return;
             }
@@ -540,17 +500,20 @@ public class BibliotecaGUI extends JFrame {
 
         btnEditar.addActionListener(e -> {
             int row = tblUsuarios.getSelectedRow();
-            if (row == -1) { JOptionPane.showMessageDialog(this, "Selecione um usuário."); return; }
-            int id = (int) modelUsuarios.getValueAt(row, 0);
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Selecione um usuário.");
+                return;
+            }
+            int id = (int) tblUsuarios.obterValor(row, 0);
             try {
-                String nNome = JOptionPane.showInputDialog(this, "Novo Nome:", modelUsuarios.getValueAt(row, 1));
+                String nNome = JOptionPane.showInputDialog(this, "ID " + id + " (Imutável) - Novo Nome:", tblUsuarios.obterValor(row, 1));
                 if (nNome == null || nNome.isBlank()) return;
                 if (!nNome.matches("^[\\p{L}\\s]+$")) {
                     JOptionPane.showMessageDialog(this, "Não pode conter números, apenas letras no Nome!");
                     return;
                 }
 
-                manager.editarUsuario(id, nNome);
+                manager.editarUsuario(id, nNome.trim());
                 atualizarTabelaUsuarios();
             } catch (Exception ex) {
                 JOptionPane.showMessageDialog(this, "Erro ao editar: " + ex.getMessage());
@@ -559,8 +522,11 @@ public class BibliotecaGUI extends JFrame {
 
         btnRemover.addActionListener(e -> {
             int row = tblUsuarios.getSelectedRow();
-            if (row == -1) { JOptionPane.showMessageDialog(this, "Selecione um usuário."); return; }
-            int id = (int) modelUsuarios.getValueAt(row, 0);
+            if (row == -1) {
+                JOptionPane.showMessageDialog(this, "Selecione um usuário.");
+                return;
+            }
+            int id = (int) tblUsuarios.obterValor(row, 0);
             try {
                 manager.removerUsuario(id);
                 atualizarTabelaUsuarios();
@@ -577,8 +543,7 @@ public class BibliotecaGUI extends JFrame {
         JPanel panel = new JPanel(new BorderLayout(10, 10));
 
         String[] colunas = {"Usuário", "Item", "Data Empréstimo", "Devolução Prevista"};
-        modelEmprestimos = new DefaultTableModel(colunas, 0);
-        tblEmprestimos = new JTable(modelEmprestimos);
+        tblEmprestimos = new TabelaEncapsulada(colunas);
         panel.add(new JScrollPane(tblEmprestimos), BorderLayout.CENTER);
 
         JPanel pnlAcoes = new JPanel(new FlowLayout(FlowLayout.CENTER, 15, 10));
@@ -609,9 +574,7 @@ public class BibliotecaGUI extends JFrame {
             }
 
             try {
-                int idU = Integer.parseInt(uStr);
-                int idI = Integer.parseInt(iStr);
-                manager.realizarEmprestimo(idU, idI);
+                manager.realizarEmprestimo(Integer.parseInt(uStr), Integer.parseInt(iStr));
                 JOptionPane.showMessageDialog(this, "Empréstimo realizado com sucesso!");
                 atualizarTodasTabelas();
             } catch (Exception ex) {
@@ -633,9 +596,7 @@ public class BibliotecaGUI extends JFrame {
             }
 
             try {
-                int idU = Integer.parseInt(uStr);
-                int idI = Integer.parseInt(iStr);
-                manager.realizarDevolucao(idU, idI);
+                manager.realizarDevolucao(Integer.parseInt(uStr), Integer.parseInt(iStr));
                 JOptionPane.showMessageDialog(this, "Devolução realizada com sucesso!");
                 atualizarTodasTabelas();
             } catch (MultaAtrasoException ex) {
@@ -663,10 +624,10 @@ public class BibliotecaGUI extends JFrame {
     }
 
     private void preencherTabelaLivros(List<ItemBiblioteca> lista) {
-        modelLivros.setRowCount(0);
+        tblLivros.limpar();
         for (ItemBiblioteca item : lista) {
             if (item instanceof Livro l) {
-                modelLivros.addRow(new Object[]{
+                tblLivros.adicionarLinha(new Object[]{
                     l.getId(), l.getTitulo(), l.getAno(), l.getAutor(), l.getNumPaginas(),
                     l.isDisponivel() ? "Disponível" : "Emprestado"
                 });
@@ -675,10 +636,10 @@ public class BibliotecaGUI extends JFrame {
     }
 
     private void atualizarTabelaRevistas() {
-        modelRevistas.setRowCount(0);
+        tblRevistas.limpar();
         for (ItemBiblioteca item : manager.getAcervo()) {
             if (item instanceof Revista r) {
-                modelRevistas.addRow(new Object[]{
+                tblRevistas.adicionarLinha(new Object[]{
                     r.getId(), r.getTitulo(), r.getAno(), r.getEdicao(),
                     r.isDisponivel() ? "Disponível" : "Emprestado"
                 });
@@ -687,10 +648,10 @@ public class BibliotecaGUI extends JFrame {
     }
 
     private void atualizarTabelaDVDs() {
-        modelDVDs.setRowCount(0);
+        tblDVDs.limpar();
         for (ItemBiblioteca item : manager.getAcervo()) {
             if (item instanceof DVD d) {
-                modelDVDs.addRow(new Object[]{
+                tblDVDs.adicionarLinha(new Object[]{
                     d.getId(), d.getTitulo(), d.getAno(), d.getDuracaoMinutos(),
                     d.isDisponivel() ? "Disponível" : "Emprestado"
                 });
@@ -699,9 +660,9 @@ public class BibliotecaGUI extends JFrame {
     }
 
     private void atualizarTabelaUsuarios() {
-        modelUsuarios.setRowCount(0);
+        tblUsuarios.limpar();
         for (Usuario u : manager.getUsuarios()) {
-            modelUsuarios.addRow(new Object[]{
+            tblUsuarios.adicionarLinha(new Object[]{
                 u.getId(), u.getNome(), u.getTipoUsuario(),
                 u.getQtdEmprestados() + "/" + u.getLimiteEmprestimos()
             });
@@ -709,9 +670,9 @@ public class BibliotecaGUI extends JFrame {
     }
 
     private void atualizarTabelaEmprestimos() {
-        modelEmprestimos.setRowCount(0);
+        tblEmprestimos.limpar();
         for (Emprestimo emp : manager.getEmprestimosAtivos()) {
-            modelEmprestimos.addRow(new Object[]{
+            tblEmprestimos.adicionarLinha(new Object[]{
                 emp.getUsuario().getNome(), emp.getItem().getTitulo(),
                 emp.getDataEmprestimo(), emp.getDataDevolucaoPrevista()
             });
