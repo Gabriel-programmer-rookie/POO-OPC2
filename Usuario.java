@@ -1,6 +1,6 @@
 public abstract class Usuario {
     private final int id;
-    private final String nome;
+    private String nome;
     private final int limiteEmprestimos;
     private int qtdEmprestados;
 
@@ -15,15 +15,23 @@ public abstract class Usuario {
 
     public int getId() { return id; }
     public String getNome() { return nome; }
+    public void setNome(String nome) { this.nome = nome; }
     public int getLimiteEmprestimos() { return limiteEmprestimos; }
     public int getQtdEmprestados() { return qtdEmprestados; }
 
-    public void incrementarEmprestimo() { this.qtdEmprestados++; }
-    public void decrementarEmprestimo() { if (this.qtdEmprestados > 0) this.qtdEmprestados--; }
+    public void incrementarEmprestimo() {
+        this.qtdEmprestados++;
+    }
+
+    public void decrementarEmprestimo() {
+        if (this.qtdEmprestados > 0) {
+            this.qtdEmprestados--;
+        }
+    }
 
     @Override
     public String toString() {
-        return "[" + getTipoUsuario() + "] ID: " + id + " | Nome: " + nome + 
+        return "[" + getTipoUsuario() + "] ID: " + id + " | Nome: " + nome +
                " | Empréstimos: " + qtdEmprestados + "/" + limiteEmprestimos;
     }
 }

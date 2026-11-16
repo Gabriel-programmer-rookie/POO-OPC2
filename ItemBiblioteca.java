@@ -1,7 +1,7 @@
 public abstract class ItemBiblioteca {
     private final int id;
-    private final String titulo;
-    private final int ano;
+    private String titulo;
+    private int ano;
     private boolean disponivel;
 
     public ItemBiblioteca(int id, String titulo, int ano) {
@@ -15,7 +15,9 @@ public abstract class ItemBiblioteca {
 
     public int getId() { return id; }
     public String getTitulo() { return titulo; }
+    public void setTitulo(String titulo) { this.titulo = titulo; }
     public int getAno() { return ano; }
+    public void setAno(int ano) { this.ano = ano; }
     public boolean isDisponivel() { return disponivel; }
     public void setDisponivel(boolean disponivel) { this.disponivel = disponivel; }
 
